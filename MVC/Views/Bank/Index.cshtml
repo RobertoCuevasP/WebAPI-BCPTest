@@ -1,0 +1,58 @@
+﻿@model IEnumerable<MVC.Models.mvcCuentaModel>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    <a href="@Url.Action("NuevaCuenta", "Bank")" class="btn btn-default"><i class="fa fa-plus"></i>Cuenta Nueva</a>
+    <a href="@Url.Action("Transaccion", "Bank")" class="btn btn-default"><i class="fa fa-plus"></i>Transaccion</a>
+    <a href="@Url.Action("Operacion", "Bank")" class="btn btn-default"><i class="fa fa-plus"></i>Abono / Retiro</a>
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.NroCuenta)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Tipo)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Moneda)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Nombre)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Saldo)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.NroCuenta)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Tipo)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Moneda)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Nombre)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Saldo)
+        </td>
+        <td>
+            <a href="@Url.Action("Movimientos", "Bank", new { id = item.NroCuenta })" class="btn btn-default">Mov.</a>
+            
+        </td>
+    </tr>
+}
+
+</table>

@@ -1,0 +1,55 @@
+﻿@using MVC.Models
+
+@model mvcCuentaDetailModel
+
+@{
+    ViewBag.Title = "Movimientos";
+}
+
+<div class="list-group">
+    @Html.LabelFor(model => model.cuenta.Nombre, "Nombre")
+    @Html.DisplayFor(model => model.cuenta.Nombre)
+</div>
+
+<div class="list-group">
+    @Html.LabelFor(model => model.cuenta.NroCuenta, "Numero de cuenta")
+    @Html.DisplayFor(model => model.cuenta.NroCuenta)
+</div>
+<div class="list-group">
+    @Html.LabelFor(model => model.cuenta.Saldo, "Saldo")
+    @Html.DisplayFor(model => model.cuenta.Saldo)
+</div>
+<div class="list-group">
+    @Html.LabelFor(model => model.cuenta.Moneda, "Moneda")
+    @Html.DisplayFor(model => model.cuenta.Moneda)
+</div>
+
+
+    <table class="table">
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.movimientosList)
+            </th>
+
+        </tr>
+
+        @foreach (var item in Model.movimientosList)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NroCuenta)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Fecha)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Tipo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Importe)
+                </td>
+            </tr>
+        }
+
+    </table>
+

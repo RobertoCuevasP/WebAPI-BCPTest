@@ -1,0 +1,47 @@
+﻿@using MVC.Models
+
+@model mvcCuentaModel
+
+@{
+    ViewBag.Title = "NuevaCuenta";
+}
+
+<div class="form-body">
+    @using (Html.BeginForm())
+    {
+        @Html.HiddenFor(model => model.Saldo)
+        @Html.HiddenFor(model => model.Tipo)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.NroCuenta, "Numero de Cuenta")
+            
+            @Html.EditorFor(model => model.NroCuenta)
+            @Html.ValidationMessageFor(model => model.NroCuenta)
+
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Moneda, "Seleccione Moneda")
+            @Html.DropDownListFor(model => model.Moneda, new SelectList(Enum.GetValues(typeof(Moneda))))
+            @Html.ValidationMessageFor(model => model.Moneda)
+
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Nombre)
+            @Html.EditorFor(model => model.Nombre)
+            @Html.ValidationMessageFor(model => model.Nombre)
+
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="Crear" class="btn button" />
+            <input type="reset" value="Borrar" class="btn button" />
+        </div>
+    }
+
+</div>
+
+@section scripts{
+    @Scripts.Render("~/bundles/jqueryval");
+    }
