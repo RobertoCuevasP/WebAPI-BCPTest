@@ -1,0 +1,145 @@
+CREATE TABLE Cuenta (
+    Nro_Cuenta varchar(14) NOT NULL,
+    Tipo char(3) NOT NULL,
+    Moneda char(3) NOT NULL,
+    Nombre varchar(40) NOT NULL,
+    Saldo decimal(12,2) NOT NULL,
+    PRIMARY KEY (Nro_Cuenta)
+);
+
+CREATE TABLE Movimiento (
+    Nro_Cuenta varchar(14) NOT NULL,
+    Fecha date NOT NULL,
+    Tipo char(1) NOT NULL,
+    Importe decimal(12,2) NOT NULL,
+);
+
+
+CREATE PROCEDURE SP_CreateCuentaAux
+	@NroCuenta as varchar(14),
+	@Moneda as char(3),
+	@Nombre as varchar(40)
+	AS
+	declare @Tipo char(3)
+	IF(SELECT LEN(@NroCuenta) = 13)
+	BEGIN
+		set @Tipo = 'CTE'
+	END
+	ELSE IF(SELECT LEN(@NroCuenta) = 14)
+	BEGIN
+		set @Tipo = 'AHO'
+	END
+	INSERT INTO Cuenta(Nro_Cuenta, Tipo, Moneda, Nombre, Saldo)
+	VALUES (@NroCuenta, @Tipo, @Moneda, @Nombre, 0)
+
+EXEC SP_CreateCuentaAux '12345678909876', 'BOL', 'Roberto Pablo Cuevas Pinto'
+EXEC SP_CreateCuentaAux '987654321012345', 'DOL', 'Mauricio Alejandro Rodriguez Teran'
+
+CREATE PROCEDURE SP_GetCuentas
+	AS
+	SELECT * FROM Cuenta
+	
+EXEC SP_GetCuentas
+
+CREATE PROCEDURE SP_GetNumerosCuenta
+	AS
+	SELECT Nro_Cuenta FROM Cuenta
+
+CREATE PROCEDURE SP_GetCuenta
+	@NroCuenta as varchar(14)
+	AS
+	SELECT * FROM Cuenta
+	WHERE Nro_Cuenta=@NroCuenta
+
+CREATE PROCEDURE SP_GetMovimientos
+	@NroCuenta as varchar(14)
+	AS
+	SELECT * FROM Movimiento
+	WHERE Nro_Cuenta=@NroCuenta
+
+CREATE PROCEDURE SP_GetSaldo
+	@NroCuenta as varchar(14)
+	AS
+	SELECT Saldo From Cuenta
+	Where Nro_Cuenta=@NroCuenta
+
+CREATE PROCEDURE SP_CreateMovimiento
+	@NroCuenta as varchar(14),
+	@Monto as decimal(12,2),
+	@Tipo as char(1)
+	AS
+	INSERT INTO Movimiento(Nro_Cuenta, Fecha, Tipo, Importe)
+	VALUES (@NroCuenta, GETDATE(), @Tipo, @Monto)
+
+EXEC SP_CreateMovimiento '12345678901234', -100, 'R'
+
+CREATE PROCEDURE SP_UpdateSaldo
+	@NroCuenta as varchar(14),
+	@Monto as decimal(12,2)
+	AS
+	UPDATE Cuenta SET Saldo=Saldo+@Monto
+	WHERE Nro_Cuenta=@NroCuenta
+
+
+CREATE PROCEDURE SP_Retiro
+	@NroCuenta as varchar(14),
+	@Monto as decimal(12,2)
+	AS
+	declare @Saldo decimal(12,2)
+	declare @MontoAux decimal(12,2)
+	set @Saldo = (Select Saldo From Cuenta Where Nro_Cuenta=@NroCuenta)
+	set @MontoAux=@Monto*(-1)
+	IF (@Saldo > @Monto and @Monto > 0)
+	BEGIN
+		EXEC SP_CreateMovimiento @NroCuenta, @MontoAux, 'R'
+		EXEC SP_UpdateSaldo @NroCuenta, @MontoAux
+	END 
+
+CREATE PROCEDURE SP_Abono
+	@NroCuenta as varchar(14),
+	@Monto as decimal(12,2)
+	AS
+	IF (@Monto > 0)
+	BEGIN
+		EXEC SP_CreateMovimiento @NroCuenta, @Monto, 'A'
+		EXEC SP_UpdateSaldo @NroCuenta, @Monto
+	END
+
+DROP PROCEDURE IF EXISTS SP_Transaccion
+CREATE PROCEDURE SP_Transaccion
+	@CuentaOrigen as varchar(14),
+	@CuentaDestino as varchar(14),
+	@Monto as decimal(12,2)
+	AS
+	declare @MonedaOrigen char(3)
+	declare @MonedaDestino char(3)
+	declare @MontoOri decimal(12,2)
+	declare @MontoDest decimal(12,2)
+	declare @Saldo decimal(12,2)
+	set @MonedaOrigen = (Select Moneda From Cuenta Where Nro_Cuenta=@CuentaOrigen)
+	set @MonedaDestino = (Select Moneda From Cuenta Where Nro_Cuenta=@CuentaDestino)
+	set @MontoOri = @Monto*(-1)
+	IF (@MonedaOrigen != @MonedaDestino)
+	BEGIN
+		IF(@MonedaDestino = 'BOL')
+		BEGIN
+			set @MontoDest=@Monto*6.86
+		END
+		ELSE
+		BEGIN
+			set @MontoDest=@Monto/6.86
+		END
+	END
+	set @Saldo = (Select Saldo From Cuenta Where Nro_Cuenta=@CuentaOrigen)
+	IF (@Saldo > @Monto and @Monto > 0)
+	BEGIN
+		EXEC SP_CreateMovimiento @CuentaOrigen, @MontoOri, 'T'
+		EXEC SP_CreateMovimiento @CuentaDestino, @MontoDest, 'T'
+		EXEC SP_UpdateSaldo @CuentaOrigen, @MontoOri
+		EXEC SP_UpdateSaldo @CuentaDestino, @MontoDest
+	END
+
+EXEC SP_Transaccion '12345678909876', '987654321012345', 50
+
+EXEC SP_GetMovimientos '12345678909876'
+EXEC SP_GetMovimientos '987654321012345'
